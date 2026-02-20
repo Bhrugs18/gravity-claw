@@ -2,7 +2,6 @@ import { GoogleGenerativeAI, Content, Part, SchemaType } from "@google/generativ
 import fs from "node:fs";
 import { config } from "./config.js";
 import { executeGetTime } from "./tools/time.js";
-import { generateTTS } from "./tools/tts.js";
 import { getMemory, saveMemory, upsertEntity } from "./memory.js";
 
 const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
@@ -19,20 +18,7 @@ const model = genAI.getGenerativeModel({
                     name: "get_current_time",
                     description: "Get the current local time.",
                 },
-                {
-                    name: "send_voice_response",
-                    description: "Generate a voice response for the user instead of just text. Use this when the user asks for a voice message or when it feels appropriate for the character.",
-                    parameters: {
-                        type: SchemaType.OBJECT,
-                        properties: {
-                            text: {
-                                type: SchemaType.STRING,
-                                description: "The text to be converted to speech."
-                            }
-                        },
-                        required: ["text"]
-                    }
-                },
+
                 {
                     name: "update_entity",
                     description: "Store or update a core bit of information about the user or world (e.g., favorite food, server IP, birthday). Use this to remember important things for later.",
@@ -131,26 +117,7 @@ ${Object.keys(memory.entities).length > 0
                             response: { content: time },
                         },
                     });
-                } else if (call.name === "send_voice_response") {
-                    const args = call.args as { text: string };
-                    try {
-                        const audioBuffer = await generateTTS(args.text);
-                        finalAudio = audioBuffer;
-                        toolResults.push({
-                            functionResponse: {
-                                name: "send_voice_response",
-                                response: { content: "Voice message generated successfully." },
-                            },
-                        });
-                    } catch (err) {
-                        console.error("❌ TTS Error:", err);
-                        toolResults.push({
-                            functionResponse: {
-                                name: "send_voice_response",
-                                response: { content: "Error generating voice message." },
-                            },
-                        });
-                    }
+
                 } else if (call.name === "update_entity") {
                     const args = call.args as { key: string, value: string };
                     try {
