@@ -17,7 +17,7 @@ const pool = new Pool({
 // 🧊 Qdrant Client
 const qdrant = new QdrantClient({ url: config.QDRANT_URL });
 
-const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY, { apiVersion: "v1" });
+const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
 const embedModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
 
 export interface MemoryContext {
