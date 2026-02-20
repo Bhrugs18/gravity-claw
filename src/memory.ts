@@ -6,13 +6,17 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { config } from "./config.js";
 
 // 🐘 Postgres Client
-const pool = new Pool({
-    host: config.POSTGRES_HOST,
-    port: config.POSTGRES_PORT,
-    user: config.POSTGRES_USER,
-    password: config.POSTGRES_PASSWORD,
-    database: config.POSTGRES_DB,
-});
+const poolConfig = config.POSTGRES_HOST.startsWith('postgres')
+    ? { connectionString: config.POSTGRES_HOST }
+    : {
+        host: config.POSTGRES_HOST,
+        port: config.POSTGRES_PORT,
+        user: config.POSTGRES_USER,
+        password: config.POSTGRES_PASSWORD,
+        database: config.POSTGRES_DB,
+    };
+const pool = new Pool(poolConfig);
+
 
 // 🧊 Qdrant Client
 const qdrant = new QdrantClient({ url: config.QDRANT_URL });
