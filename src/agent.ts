@@ -7,8 +7,11 @@ import { getMemory, saveMemory, upsertEntity } from "./memory.js";
 
 const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
 
+const SOUL_CONTENT = fs.readFileSync("./src/soul.md", "utf-8");
+
 const model = genAI.getGenerativeModel({
-    model: "gemini-flash-latest",
+    model: "gemini-1.5-flash",
+    systemInstruction: SOUL_CONTENT,
     tools: [
         {
             functionDeclarations: [
@@ -55,8 +58,6 @@ const model = genAI.getGenerativeModel({
 
 const history: Content[] = [];
 
-const SOUL_CONTENT = fs.readFileSync("./src/soul.md", "utf-8");
-
 export async function initiateProactiveCheckIn(userId: number): Promise<{ reply: string, audio?: Buffer }> {
     const proactivePrompt = `
 [PROACTIVE TRIGGER]
@@ -92,7 +93,6 @@ ${Object.keys(memory.entities).length > 0
 
         const chat = model.startChat({
             history: history,
-            systemInstruction: SOUL_CONTENT,
         });
 
         const prompt: (string | Part)[] = [];
