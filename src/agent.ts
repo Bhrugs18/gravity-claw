@@ -2,6 +2,7 @@ import { GoogleGenerativeAI, Content, Part, SchemaType } from "@google/generativ
 import fs from "node:fs";
 import { config } from "./config.js";
 import { executeGetTime } from "./tools/time.js";
+import { getWeather } from "./tools/weather.js";
 import { getMemory, saveMemory, upsertEntity } from "./memory.js";
 
 const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
@@ -17,6 +18,20 @@ const model = genAI.getGenerativeModel({
                 {
                     name: "get_current_time",
                     description: "Get the current local time.",
+                },
+                {
+                    name: "get_weather",
+                    description: "Get the current weather for a specific location.",
+                    parameters: {
+                        type: SchemaType.OBJECT,
+                        properties: {
+                            location: {
+                                type: SchemaType.STRING,
+                                description: "The city/location to check the weather for (e.g., 'London', 'New York')."
+                            }
+                        },
+                        required: ["location"]
+                    }
                 },
 
                 {
@@ -117,7 +132,15 @@ ${Object.keys(memory.entities).length > 0
                             response: { content: time },
                         },
                     });
-
+                } else if (call.name === "get_weather") {
+                    const args = call.args as { location: string };
+                    const weather = await getWeather(args.location);
+                    toolResults.push({
+                        functionResponse: {
+                            name: "get_weather",
+                            response: { content: weather },
+                        },
+                    });
                 } else if (call.name === "update_entity") {
                     const args = call.args as { key: string, value: string };
                     try {
