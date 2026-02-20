@@ -1,0 +1,7 @@
+Script started on 2026-02-20 15:26:54+05:30 [COMMAND="railway login" TERM="xterm-256color" TTY="/dev/pts/0" COLUMNS="23" LINES="10"]
+[1mRailway now collects CLI usage data to improve the developer experience.[0m
+You can opt out by setting RAILWAY_NO_TELEMETRY=1 or DO_NOT_TRACK=1 in your environment.
+[2mLearn more: https://docs.railway.com/cli/telemetry[0m
+[?25l[38;5;14m[1m?[39m[0m Open the browser? (Y/
+n)  [3C[?25h
+Script done on 2026-02-20 15:26:56+05:30 [COMMAND_EXIT_CODE="1"]

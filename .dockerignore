@@ -1,0 +1,13 @@
+.env
+node_modules
+dist
+gravity-claw.db
+repro.ts
+verify.ts
+verify_alt.ts
+verify_new.ts
+verify_pro.ts
+verify_flash_latest.ts
+test_agent.ts
+.git
+.agent

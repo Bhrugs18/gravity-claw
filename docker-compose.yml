@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: gravity-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-gravity}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-claw}
+      POSTGRES_DB: ${POSTGRES_DB:-gravity_memory}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: gravity-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_storage:/qdrant/storage
+
+volumes:
+  pgdata:
+  qdrant_storage:
