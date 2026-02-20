@@ -14,7 +14,7 @@ const configSchema = z.object({
     POSTGRES_PASSWORD: z.string().default('claw'),
     POSTGRES_DB: z.string().default('gravity_memory'),
     QDRANT_URL: z.string().url().default('http://localhost:6333'),
-    QDRANT_COLLECTION: z.string().default('gravity-claw-memory'),
+    QDRANT_COLLECTION: z.string().default('gravity-claw-memory-v2'),
 });
 
 const parsed = configSchema.safeParse(process.env);

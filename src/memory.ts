@@ -18,7 +18,7 @@ const pool = new Pool({
 const qdrant = new QdrantClient({ url: config.QDRANT_URL });
 
 const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
-const embedModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
+const embedModel = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
 
 export interface MemoryContext {
     archival: string[];
@@ -33,7 +33,7 @@ async function ensureCollection() {
         console.log(`🚀 Creating Qdrant collection: ${config.QDRANT_COLLECTION}`);
         await qdrant.createCollection(config.QDRANT_COLLECTION, {
             vectors: {
-                size: 1536, // Gemini embedding size
+                size: 3072, // Gemini embedding size
                 distance: "Cosine",
             }
         });
