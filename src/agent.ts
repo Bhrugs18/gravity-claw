@@ -5,7 +5,7 @@ import { executeGetTime } from "./tools/time.js";
 import { generateTTS } from "./tools/tts.js";
 import { getMemory, saveMemory, upsertEntity } from "./memory.js";
 
-const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY, { apiVersion: "v1" });
 
 const SOUL_CONTENT = fs.readFileSync("./src/soul.md", "utf-8");
 
