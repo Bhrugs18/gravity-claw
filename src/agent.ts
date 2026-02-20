@@ -10,7 +10,7 @@ const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
 const SOUL_CONTENT = fs.readFileSync("./src/soul.md", "utf-8");
 
 const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
+    model: "gemini-1.5-flash-latest",
     systemInstruction: SOUL_CONTENT,
     tools: [
         {
