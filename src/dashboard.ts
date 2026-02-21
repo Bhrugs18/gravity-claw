@@ -16,6 +16,9 @@ app.get('/api/state', (req, res) => {
 
 export function startDashboard() {
     app.listen(PORT, () => {
-        globalState.addLog('system', `Dashboard live at http://localhost:${PORT}`);
+        const publicUrl = process.env.RAILWAY_PUBLIC_DOMAIN
+            ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
+            : `http://localhost:${PORT}`;
+        globalState.addLog('system', `Dashboard active. Access at: ${publicUrl}`);
     });
 }
