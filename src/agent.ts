@@ -3,6 +3,7 @@ import fs from "node:fs";
 import { config } from "./config.js";
 import { executeGetTime } from "./tools/time.js";
 import { getWeather } from "./tools/weather.js";
+import { runTerminalCommand } from "./tools/terminal.js";
 import { getMemory, saveMemory, upsertEntity } from "./memory.js";
 
 const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
@@ -31,6 +32,20 @@ const model = genAI.getGenerativeModel({
                             }
                         },
                         required: ["location"]
+                    }
+                },
+                {
+                    name: "run_terminal_command",
+                    description: "Execute a bash/shell command on the host system. Use this to install software, manage the OS, inspect files, or run scripts as requested by the user.",
+                    parameters: {
+                        type: SchemaType.OBJECT,
+                        properties: {
+                            command: {
+                                type: SchemaType.STRING,
+                                description: "The raw bash command to execute (e.g., 'apt-get install htop', 'ls -la', 'ps aux')."
+                            }
+                        },
+                        required: ["command"]
                     }
                 },
 
@@ -139,6 +154,15 @@ ${Object.keys(memory.entities).length > 0
                         functionResponse: {
                             name: "get_weather",
                             response: { content: weather },
+                        },
+                    });
+                } else if (call.name === "run_terminal_command") {
+                    const args = call.args as { command: string };
+                    const output = await runTerminalCommand(args.command);
+                    toolResults.push({
+                        functionResponse: {
+                            name: "run_terminal_command",
+                            response: { content: output },
                         },
                     });
                 } else if (call.name === "update_entity") {
