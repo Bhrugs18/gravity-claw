@@ -4,6 +4,7 @@ import { config } from "./config.js";
 import { executeGetTime } from "./tools/time.js";
 import { getWeather } from "./tools/weather.js";
 import { runTerminalCommand } from "./tools/terminal.js";
+import { scrapeWebsite } from "./tools/web_scrape.js";
 import { getMemory, saveMemory, upsertEntity } from "./memory.js";
 
 const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
@@ -46,6 +47,20 @@ const model = genAI.getGenerativeModel({
                             }
                         },
                         required: ["command"]
+                    }
+                },
+                {
+                    name: "scrape_website",
+                    description: "Fetch and read the readable text content of a webpage given its URL. Use this tool any time a user provides a link and asks you to analyze it.",
+                    parameters: {
+                        type: SchemaType.OBJECT,
+                        properties: {
+                            url: {
+                                type: SchemaType.STRING,
+                                description: "The full URL of the website to scrape (e.g., 'https://example.com/article')."
+                            }
+                        },
+                        required: ["url"]
                     }
                 },
 
@@ -163,6 +178,15 @@ ${Object.keys(memory.entities).length > 0
                         functionResponse: {
                             name: "run_terminal_command",
                             response: { content: output },
+                        },
+                    });
+                } else if (call.name === "scrape_website") {
+                    const args = call.args as { url: string };
+                    const text = await scrapeWebsite(args.url);
+                    toolResults.push({
+                        functionResponse: {
+                            name: "scrape_website",
+                            response: { content: text },
                         },
                     });
                 } else if (call.name === "update_entity") {
