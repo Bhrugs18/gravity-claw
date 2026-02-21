@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gravity Claw Dashboard</title>
+    <style>
+        :root {
+            --bg: #0a0a0c;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --accent: #6d63ff;
+            --text: #e0e0e0;
+            --glass: rgba(255, 255, 255, 0.03);
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', system-ui, sans-serif;
+            margin: 0;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+        .panel {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        h2 {
+            margin-top: 0;
+            font-weight: 500;
+            color: var(--accent);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+        }
+        .logs {
+            flex-grow: 1;
+            overflow-y: auto;
+            font-family: 'Berkeley Mono', 'Fira Code', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .log-entry {
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 0.5rem;
+        }
+        .log-time { color: #666; margin-right: 0.5rem; }
+        .log-sender { color: var(--accent); font-weight: bold; margin-right: 0.5rem; }
+        .agents-list {
+            display: grid;
+            gap: 1rem;
+        }
+        .agent-card {
+            background: var(--glass);
+            border-radius: 12px;
+            padding: 1rem;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .agent-name { font-weight: bold; margin-bottom: 0.5rem; display: block; }
+        .agent-status {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 100px;
+            background: #2e2e2e;
+        }
+        .status-working { background: #3c2e12; color: #ffcc00; }
+        .status-completed { background: #123c1e; color: #00ff66; }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <h2>Live Activity Logs</h2>
+        <div id="logs" class="logs"></div>
+    </div>
+    <div class="panel">
+        <h2>Active Sub-Agents</h2>
+        <div id="agents" class="agents-list"></div>
+    </div>
+
+    <script>
+        async function update() {
+            try {
+                const res = await fetch('/api/state');
+                const data = await res.json();
+                
+                const logsDiv = document.getElementById('logs');
+                logsDiv.innerHTML = data.logs.slice().reverse().map(l => `
+                    <div class="log-entry">
+                        <span class="log-time">${new Date(l.timestamp).toLocaleTimeString()}</span>
+                        <span class="log-sender">${l.sender}:</span>
+                        <span class="log-msg">${l.message}</span>
+                    </div>
+                `).join('');
+
+                const agentsDiv = document.getElementById('agents');
+                agentsDiv.innerHTML = data.subAgents.map(a => `
+                    <div class="agent-card">
+                        <span class="agent-name">🤖 ${a.name}</span>
+                        <div style="margin-bottom: 0.5rem; font-size: 0.8rem; color: #888;">${a.task || 'Awaiting task...'}</div>
+                        <span class="agent-status status-${a.status}">${a.status}</span>
+                    </div>
+                `).join('');
+            } catch(e) {}
+        }
+        setInterval(update, 2000);
+        update();
+    </script>
+</body>
+</html>

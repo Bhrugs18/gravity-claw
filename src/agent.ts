@@ -6,6 +6,8 @@ import { getWeather } from "./tools/weather.js";
 import { runTerminalCommand } from "./tools/terminal.js";
 import { scrapeWebsite } from "./tools/web_scrape.js";
 import { getMemory, saveMemory, upsertEntity } from "./memory.js";
+import { globalState } from "./state.js";
+import { registerSubAgent, delegateToSubAgent } from "./subagents.js";
 
 const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
 
@@ -61,6 +63,35 @@ const model = genAI.getGenerativeModel({
                             }
                         },
                         required: ["url"]
+                    }
+                },
+                {
+                    name: "create_subagent",
+                    description: "Spawn a new sub-agent with a specific purpose and set of tools.",
+                    parameters: {
+                        type: SchemaType.OBJECT,
+                        properties: {
+                            name: { type: SchemaType.STRING, description: "Unique name for the sub-agent." },
+                            purpose: { type: SchemaType.STRING, description: "The system instruction or goal for this sub-agent." },
+                            tools: {
+                                type: SchemaType.ARRAY,
+                                items: { type: SchemaType.STRING },
+                                description: "List of tools to give the sub-agent: 'get_weather', 'run_terminal_command', 'scrape_website'."
+                            }
+                        },
+                        required: ["name", "purpose", "tools"]
+                    }
+                },
+                {
+                    name: "delegate_task",
+                    description: "Assign a task to an existing sub-agent.",
+                    parameters: {
+                        type: SchemaType.OBJECT,
+                        properties: {
+                            name: { type: SchemaType.STRING, description: "Name of the sub-agent to use." },
+                            task: { type: SchemaType.STRING, description: "The specific request or chore for the sub-agent." }
+                        },
+                        required: ["name", "task"]
                     }
                 },
 
@@ -143,6 +174,7 @@ ${Object.keys(memory.entities).length > 0
         }
         prompt.push("If you learn something core or important about the user, use the 'update_entity' tool to remember it forever.");
 
+        globalState.addLog('user', `Message from ${userId}: ${text || '[Media]'}`);
         let result = await chat.sendMessage(prompt);
         let response = result.response;
         let calls = response.functionCalls() || [];
@@ -189,6 +221,29 @@ ${Object.keys(memory.entities).length > 0
                             response: { content: text },
                         },
                     });
+                } else if (call.name === "create_subagent") {
+                    const args = call.args as { name: string, purpose: string, tools: string[] };
+                    registerSubAgent({
+                        name: args.name,
+                        description: args.purpose,
+                        systemInstruction: args.purpose,
+                        tools: args.tools
+                    });
+                    toolResults.push({
+                        functionResponse: {
+                            name: "create_subagent",
+                            response: { content: `Sub-agent ${args.name} created successfully.` },
+                        },
+                    });
+                } else if (call.name === "delegate_task") {
+                    const args = call.args as { name: string, task: string };
+                    const output = await delegateToSubAgent(args.name, args.task);
+                    toolResults.push({
+                        functionResponse: {
+                            name: "delegate_task",
+                            response: { content: output },
+                        },
+                    });
                 } else if (call.name === "update_entity") {
                     const args = call.args as { key: string, value: string };
                     try {
@@ -221,6 +276,7 @@ ${Object.keys(memory.entities).length > 0
         }
 
         const reply = response.text();
+        globalState.addLog('agent', `Reply: ${reply.substring(0, 100)}...`);
 
         // 💾 Save to Memory
         await saveMemory(userId, 'user', text);

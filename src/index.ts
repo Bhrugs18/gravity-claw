@@ -3,6 +3,8 @@ import axios from 'axios';
 import { config } from './config.js';
 import { processMessage } from './agent.js';
 import { initHeartbeat } from './heartbeat.js';
+import { startDashboard } from './dashboard.js';
+import { globalState } from './state.js';
 
 export const bot = new Bot(config.TELEGRAM_BOT_TOKEN);
 
@@ -80,10 +82,13 @@ bot.catch((err) => {
     console.error(`❌ Bot Error for update ${ctx.update.update_id}:`, err.error);
 });
 
-console.log('🚀 Gravity Claw Level 1 is starting...');
+console.log('🚀 Gravity Claw is starting...');
 initHeartbeat();
+startDashboard();
 bot.start({
     onStart: (botInfo: { username: string }) => {
-        console.log(`✅ Bot @${botInfo.username} is active and polling.`);
+        const msg = `✅ Bot @${botInfo.username} is active and polling.`;
+        console.log(msg);
+        globalState.addLog('system', msg);
     },
 });
